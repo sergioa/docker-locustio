@@ -2,9 +2,9 @@ version: "3.4"
 
 services:
 
-  locustio_master:
-    image: sergioa/locustio:1.0.1
-    command: "--host=http://sweng_loadtest.emea.roche.com:8080 --master"
+  locustio-master:
+    image: "${IMAGE}"
+    command: "--host=${HOST} --master"
     ports:
       - target: 8089
         published: 8089
@@ -12,7 +12,6 @@ services:
         mode: host
     networks:
       locustio_net:
-        ipv4_address: 10.1.0.3
     deploy:
       mode: replicated
       replicas: 1
@@ -20,20 +19,17 @@ services:
         constraints: 
           - node.role == manager
 
-  locustio_worker:
-    image: sergioa/locustio:1.0.1
-    command: "--host=http://sweng_loadtest.emea.roche.com:8080 --slave --master-host=10.1.0.3"
+  locustio-worker:
+    image: "${IMAGE}"
+    command: "--host=${HOST} --slave --master-host=locustio-master"
     deploy:
       mode: replicated
       replicas: 5
     networks:
       locustio_net:
     depends_on:
-      - "locustio_master"
+      - "locustio-master"
 
 networks:
   locustio_net:
     driver: overlay
-    ipam:
-      config:
-        - subnet: 10.1.0.0/24
